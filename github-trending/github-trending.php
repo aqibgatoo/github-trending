@@ -27,12 +27,12 @@ class github_widget extends WP_Widget {
 	 */
 	function __construct() {
 		parent::__construct(
-			'github_widget', /
-			__( 'Trending Repositories', 'text_domain' ), 
+			'github_widget',
+			__( 'Trending Repositories', 'text_domain' ),
 			array(
 				'classname' => 'github-widget',
 				'description' => __( 'Shows Trending Github Repositories', 'text_domain' )
-			) 
+			)
 		);
 	}
 
@@ -40,34 +40,67 @@ class github_widget extends WP_Widget {
 	 * Front-end display of widget.
 	 */
 	public function widget( $args, $instance ) {
-	
+
+
+		$repositories = $this->get_trending_repos();
+
 		echo $args['before_widget'];
 		if ( !empty( $instance['title'] ) ) {
 			echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
 		}
-		$options = array( 'timeout' => 120 );
-		$response = wp_remote_get( 'http://highlysecret.com/api/github-trending.json' );
-		if ( is_wp_error( $response ) ) {
-			echo $response->get_error_message();
-		}
-		if ( isset( $response ) && !empty( $response ) && !is_wp_error( $response ) ) {
-			$payload = $response['body'];
-			$object = json_decode( $payload );
-			echo "<ul>";
+
+		if ( $repositories !== false ) {
+			echo '<ul>';
 			for ( $i = 0; $i < 6; $i ++ ) {
-				echo "<li><a href=" . $object->results->repos[$i]->name->href . ">" . $object->results->repos[$i]->name->text . "</a></li>";
+				echo "<li><a href='" . $repositories->repoUrl[$i] . "'>" . $repositories->repoName[$i] . "</a></li>";
 			}
-			echo "</ul>";
+
+
 		}
 
 		echo $args['after_widget'];
+	}
+
+	private function get_trending_repos() {
+
+		$repositories = get_transient( 'my_github_repositories' );
+
+		if ( !$repositories ) {
+
+			$repositories = $this->fetch_repos( "http://www.secretapi.com/" ); // prevent api abuse 
+		}
+		return $repositories;
+	}
+
+	private function fetch_repos( $url ) {
+		$options = array( 'timeout' => 200 );
+		$response = wp_remote_get( $url, $options );
+
+		$payload = json_decode( $response['body'] );
+/
+		if ( isset( $payload->error ) ) {
+			return false;
+		}
+
+		$repos = new stdClass();
+		$repos->repoUrl = array();
+		$repos->repoName = array();
+
+		for ( $i = 0; $i < 6; $i ++ ) {
+			$repos->repoUrl[] = $payload->results->repos[$i]->name->href;
+			$repos->repoName[] = $payload->results->repos[$i]->name->text;
+		}
+
+		set_transient( 'my_github_repositories', $repos, 60 * 15 );
+
+		return $repos;
 	}
 
 	/**
 	 * Back-end widget form.
 	 */
 	public function form( $instance ) {
-		$title = !empty( $instance['title'] ) ? $instance['title'] : __( 'Github Trending Repositories', 'text_domain' );
+		$title = !empty( $instance['title'] ) ? $instance['title'] : __( 'Trending Repositories', 'text_domain' );
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
@@ -80,7 +113,6 @@ class github_widget extends WP_Widget {
 
 	/**
 	 * Sanitize widget form values as they are saved.
-
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance = array();
@@ -88,6 +120,7 @@ class github_widget extends WP_Widget {
 
 		return $instance;
 	}
+
 
 } // class github_widget
 
