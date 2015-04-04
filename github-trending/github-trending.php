@@ -76,11 +76,13 @@ class github_widget extends WP_Widget {
 		$options = array( 'timeout' => 200 );
 		$response = wp_remote_get( $url, $options );
 
-		$payload = json_decode( $response['body'] );
-/
-		if ( isset( $payload->error ) ) {
+				if ( is_wp_error( $response ) ) {
 			return false;
 		}
+
+
+		$payload = json_decode( $response['body'] );
+
 
 		$repos = new stdClass();
 		$repos->repoUrl = array();
@@ -129,5 +131,5 @@ add_action( 'wp_enqueue_scripts', 'github_widget_css' );
 function github_widget_css() {
 
 	wp_enqueue_style( 'github-widget-style-css', plugins_url( 'github-trending/github-trending-style.css' ) );
-
+open
 }
