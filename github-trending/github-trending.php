@@ -1,11 +1,12 @@
 <?php
 /*
- * Plugin Name: Github Trending Repositories
- * Description: Shows Github Trending Repositories
+ * Plugin Name: Github Trending Widget
+ * Description: Show Trending Github Repositories
  * Version: 1.0
  * Author: Aqib Gatoo
  * Author URI: http://aqibgatoo.com
  * License: GPLv2
+
 */
 
 //
@@ -54,8 +55,8 @@ class github_widget extends WP_Widget {
 			for ( $i = 0; $i < 6; $i ++ ) {
 				echo "<li><a href='" . $repositories->repoUrl[$i] . "'>" . $repositories->repoName[$i] . "</a></li>";
 			}
-
-
+		} else {
+			echo "<p>Unable to fetch data.Try again/p>";
 		}
 
 		echo $args['after_widget'];
@@ -67,8 +68,9 @@ class github_widget extends WP_Widget {
 
 		if ( !$repositories ) {
 
-			$repositories = $this->fetch_repos( "http://www.secretapi.com/" ); // prevent api abuse 
+			$repositories = $this->fetch_repos( "https://www.kimonolabs.com/api/9kg7km3i?apikey=VCzI2k65176RZW2VzF87sdiisii5rhJN" );
 		}
+
 		return $repositories;
 	}
 
@@ -76,13 +78,10 @@ class github_widget extends WP_Widget {
 		$options = array( 'timeout' => 200 );
 		$response = wp_remote_get( $url, $options );
 
-				if ( is_wp_error( $response ) ) {
+		if ( is_wp_error( $response ) ) {
 			return false;
 		}
-
-
 		$payload = json_decode( $response['body'] );
-
 
 		$repos = new stdClass();
 		$repos->repoUrl = array();
@@ -93,7 +92,7 @@ class github_widget extends WP_Widget {
 			$repos->repoName[] = $payload->results->repos[$i]->name->text;
 		}
 
-		set_transient( 'my_github_repositories', $repos, 60 * 15 );
+		set_transient( 'my_github_repositories', $repos, 60 * 30 );
 
 		return $repos;
 	}
@@ -130,6 +129,6 @@ add_action( 'wp_enqueue_scripts', 'github_widget_css' );
 
 function github_widget_css() {
 
-	wp_enqueue_style( 'github-widget-style-css', plugins_url( 'github-trending/github-trending-style.css' ) );
-open
+	wp_enqueue_style( 'github-widget-style-css', plugins_url( 'github-trending-style.css',__FILE__ ) );
+
 }
