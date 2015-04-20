@@ -68,7 +68,7 @@ class github_widget extends WP_Widget {
 
 		if ( !$repositories ) {
 
-			$repositories = $this->fetch_repos( "https://www.kimonolabs.com/api/9kg7km3i?apikey=VCzI2k65176RZW2VzF87sdiisii5rhJN" );
+			$repositories = $this->fetch_repos( "http://sampleapi.com/needs/to/be/protected" );
 		}
 
 		return $repositories;
