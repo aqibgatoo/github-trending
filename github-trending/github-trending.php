@@ -9,7 +9,13 @@
 
 */
 
-//
+register_activation_hook( __FILE__, ‘github_trending_install’ );
+function github_trending_install() {
+  if ( version_compare( get_bloginfo( ‘version’ ), ‘3.0’, ‘ < ’ ) ) {
+     deactivate_plugins( basename( __FILE__ ) ); // Deactivate the  plugin
+   }
+}//Activation Hook
+
 function github_widget_init() {
 	//register widget
 	register_widget( 'github_widget' );
@@ -72,7 +78,7 @@ class github_widget extends WP_Widget {
 		}
 
 		return $repositories;
-	}
+	}//Get Repositories
 
 	private function fetch_repos( $url ) {
 		$options = array( 'timeout' => 200 );
@@ -95,7 +101,7 @@ class github_widget extends WP_Widget {
 		set_transient( 'my_github_repositories', $repos, 60 * 30 );
 
 		return $repos;
-	}
+	}//Fetch Repos from github
 
 	/**
 	 * Back-end widget form.
